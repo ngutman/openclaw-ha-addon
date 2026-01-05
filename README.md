@@ -30,7 +30,8 @@ The add-on does the following on startup:
 1) Clones or updates the Clawdbot repo into `/config/clawdbot/clawdbot-src`.
 2) Installs dependencies and builds the gateway and control UI.
 3) Runs `clawdbot setup` if no config exists.
-4) Starts the gateway.
+4) Ensures `gateway.mode=local` if it was missing.
+5) Starts the gateway.
 
 ## Configure Clawdbot
 SSH into the add-on and run the configurator (recommended: onboarding wizard):

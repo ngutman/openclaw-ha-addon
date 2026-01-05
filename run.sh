@@ -139,6 +139,25 @@ else
   log "config exists; skipping clawdbot setup"
 fi
 
+ensure_gateway_mode() {
+  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const gateway=data.gateway||{};const mode=String(gateway.mode||'').trim();if(!mode){gateway.mode='local';data.gateway=gateway;fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');console.log('updated');}else{console.log('unchanged');}" 2>/dev/null
+}
+
+read_gateway_mode() {
+  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const gateway=data.gateway||{};const mode=String(gateway.mode||'').trim();if(mode){console.log(mode);}"; 2>/dev/null
+}
+
+if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
+  mode_status="$(ensure_gateway_mode || true)"
+  if [ "${mode_status}" = "updated" ]; then
+    log "gateway.mode set to local (missing)"
+  elif [ "${mode_status}" = "unchanged" ]; then
+    log "gateway.mode already set"
+  else
+    log "failed to normalize gateway.mode (invalid config?)"
+  fi
+fi
+
 PORT="$(jq -r .port /data/options.json)"
 VERBOSE="$(jq -r .verbose /data/options.json)"
 
@@ -150,6 +169,12 @@ ALLOW_UNCONFIGURED=()
 if [ ! -f "${CLAWDBOT_CONFIG_PATH}" ]; then
   log "config missing; allowing unconfigured gateway start"
   ALLOW_UNCONFIGURED=(--allow-unconfigured)
+else
+  gateway_mode="$(read_gateway_mode || true)"
+  if [ -z "${gateway_mode}" ]; then
+    log "gateway.mode missing; allowing unconfigured gateway start"
+    ALLOW_UNCONFIGURED=(--allow-unconfigured)
+  fi
 fi
 
 ARGS=(gateway "${ALLOW_UNCONFIGURED[@]}" --port "${PORT}")

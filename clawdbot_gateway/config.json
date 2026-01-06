@@ -1,9 +1,9 @@
 {
   "name": "Clawdbot Gateway",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "slug": "clawdbot_gateway",
   "description": "Clawdbot Gateway (SSH-tunneled, HA add-on)",
-  "url": "https://github.com/clawdbot/clawdbot",
+  "url": "https://github.com/ngutman/clawdbot-ha-addon",
   "documentation": "https://github.com/ngutman/clawdbot-ha-addon",
   "arch": ["aarch64", "armv7", "amd64"],
   "startup": "services",

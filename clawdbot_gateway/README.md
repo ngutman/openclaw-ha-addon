@@ -81,3 +81,4 @@ Use `pnpm clawdbot configure` or `pnpm clawdbot onboard` to set it in `clawdbot.
 
 ## Links
 - Clawdbot repo: https://github.com/clawdbot/clawdbot
+- Add-on repo: https://github.com/ngutman/clawdbot-ha-addon

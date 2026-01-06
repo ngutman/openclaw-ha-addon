@@ -16,7 +16,7 @@ RUN apt-get update \
 
 RUN npm install -g pnpm@9.12.3
 
-WORKDIR /opt/clawdis
+WORKDIR /opt/clawdbot
 
 COPY run.sh /run.sh
 RUN chmod +x /run.sh

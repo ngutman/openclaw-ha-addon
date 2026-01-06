@@ -8,15 +8,11 @@ Run the Clawdbot Gateway on Home Assistant OS and access it securely over an SSH
 - On first start, the add-on runs `clawdbot setup` to create a minimal config and workspace.
 - This README is shown in the Home Assistant add-on info panel.
 
-## Install (Local Add-on)
-1) Copy this folder to your HA host:
-```bash
-ssh root@<ha-host> "mkdir -p /addons/clawdbot_gateway"
-scp -r ./clawdbot_gateway/* root@<ha-host>:/addons/clawdbot_gateway/
-```
-2) In Home Assistant UI:
-- Settings → Add-ons → Add-on Store → menu (⋮) → Reload.
-- Install the “Clawdbot Gateway” add-on.
+## Install (Repository Add-on)
+1) In Home Assistant UI:
+   - Settings → Add-ons → Add-on Store → menu (⋮) → Repositories.
+   - Add: `https://github.com/ngutman/clawdbot-ha-addon`
+2) Reload the Add-on Store and install “Clawdbot Gateway”.
 
 ## Configure Add-on Options
 In the add-on configuration UI, set:

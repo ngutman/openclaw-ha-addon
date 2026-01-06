@@ -127,6 +127,8 @@ else
   log "updating repo in ${REPO_DIR}"
   git -C "${REPO_DIR}" remote set-url origin "${REPO_URL}"
   git -C "${REPO_DIR}" fetch --prune
+  git -C "${REPO_DIR}" reset --hard
+  git -C "${REPO_DIR}" clean -fd
   if [ -n "${REPO_REF}" ]; then
     git -C "${REPO_DIR}" checkout --detach "${REPO_REF}"
     git -C "${REPO_DIR}" reset --hard "${REPO_REF}"

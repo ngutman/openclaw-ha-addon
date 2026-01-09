@@ -144,7 +144,7 @@ fi
 cd "${REPO_DIR}"
 
 log "installing dependencies"
-pnpm install --no-frozen-lockfile
+pnpm install --no-frozen-lockfile --force
 log "building gateway"
 pnpm build
 if [ ! -d "${REPO_DIR}/ui/node_modules" ]; then

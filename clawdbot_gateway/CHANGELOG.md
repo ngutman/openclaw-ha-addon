@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.8
+- Install: always reinstall dependencies without confirmation.
+
 ## 0.2.7
 - Docker: install clawdhub and Home Assistant CLI.
 

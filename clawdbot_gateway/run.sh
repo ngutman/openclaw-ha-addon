@@ -145,7 +145,7 @@ cd "${REPO_DIR}"
 
 log "installing dependencies"
 pnpm config set confirmModulesPurge false >/dev/null 2>&1 || true
-pnpm install --no-frozen-lockfile --prefer-frozen-lockfile --optimistic-repeat-install
+pnpm install --no-frozen-lockfile --prefer-frozen-lockfile
 log "building gateway"
 pnpm build
 if [ ! -d "${REPO_DIR}/ui/node_modules" ]; then

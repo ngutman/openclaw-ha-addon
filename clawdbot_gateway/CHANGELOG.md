@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.10
+- Fix: remove unsupported pnpm install flag in add-on image.
+
 ## 0.2.9
 - Install: auto-confirm module purge only when needed.
 

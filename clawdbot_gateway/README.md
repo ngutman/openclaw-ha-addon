@@ -6,6 +6,7 @@ Run [Clawdbot](https://github.com/clawdbot/clawdbot) on Home Assistant OS with s
 
 - 🦞 **Clawdbot Gateway** — AI agent with messaging, automation, and more
 - 🔒 **SSH Tunnel** — Secure remote access for Clawdbot.app or CLI
+- 🧭 **Web UI** — Home Assistant ingress + sidebar panel (Clawdbot Dashboard)
 - 📦 **Persistent Storage** — All data survives add-on updates
 - 🛠️ **Included Tools** — gog (Google Workspace), gh (GitHub), hass-cli
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.14
+- Add ingress web UI and sidebar panel (Clawdbot Dashboard).
+
 ## 0.2.13
 - Add icon.png and logo.png (cyber-lobster mascot).
 - Add DOCS.md with detailed documentation.

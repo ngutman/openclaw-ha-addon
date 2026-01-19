@@ -63,6 +63,16 @@ ha addons restart local_clawdbot
 
 ## Usage
 
+### Web UI (Ingress)
+
+Home Assistant can proxy the gateway UI bound on `127.0.0.1:18789` via add-on ingress.
+Open the add-on page and use **Open Web UI**, or enable **Show in sidebar** to add the
+**Clawdbot Dashboard** panel. The panel is admin-only by default (`panel_admin: true`).
+To allow non-admin users, change `panel_admin` in `config.json` and reinstall the add-on.
+
+> Note: Ingress is pinned to port `18789`. Keep the add-on `port` option at `18789` if
+> you want the sidebar panel to keep working.
+
 ### SSH Tunnel Access
 
 The gateway listens on loopback by default. Access it via SSH tunnel:

@@ -232,6 +232,9 @@ VERBOSE="$(jq -r .verbose /data/options.json)"
 if [ -z "${PORT}" ] || [ "${PORT}" = "null" ]; then
   PORT="18789"
 fi
+if [ "${PORT}" != "18789" ]; then
+  log "warning: ingress panel expects port 18789; update add-on config if you changed port"
+fi
 
 ALLOW_UNCONFIGURED=()
 if [ ! -f "${CLAWDBOT_CONFIG_PATH}" ]; then

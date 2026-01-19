@@ -1,6 +1,6 @@
 {
   "name": "Clawdbot Gateway",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "slug": "clawdbot_gateway",
   "description": "Clawdbot Gateway (SSH-tunneled, HA add-on)",
   "url": "https://github.com/ngutman/clawdbot-ha-addon",
@@ -19,6 +19,9 @@
   "options": {
     "port": 18789,
     "verbose": false,
+    "log_format": "pretty",
+    "log_color": false,
+    "log_fields": "",
     "repo_url": "https://github.com/clawdbot/clawdbot.git",
     "branch": "",
     "github_token": "",
@@ -28,6 +31,9 @@
   "schema": {
     "port": "int(1,65535)",
     "verbose": "bool",
+    "log_format": "str",
+    "log_color": "bool",
+    "log_fields": "str?",
     "repo_url": "str",
     "branch": "str?",
     "github_token": "password?",

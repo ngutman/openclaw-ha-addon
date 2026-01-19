@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.14
+- Add pretty log formatting options for the add-on Log tab.
+
 ## 0.2.13
 - Add icon.png and logo.png (cyber-lobster mascot).
 - Add DOCS.md with detailed documentation.

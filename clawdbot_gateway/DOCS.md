@@ -28,6 +28,9 @@ This add-on runs the Clawdbot Gateway on Home Assistant OS, providing secure rem
 | `branch` | Branch to checkout (uses repo's default if omitted) |
 | `github_token` | Token for private repository access |
 | `verbose` | Enable verbose logging |
+| `log_format` | Log output format in the add-on Log tab: `pretty` or `raw` |
+| `log_color` | Enable ANSI colors for pretty logs (may be ignored in the UI) |
+| `log_fields` | Comma-separated metadata keys to append (e.g. `connectionId,uptimeMs,runId`) |
 
 ### First Run
 

@@ -228,6 +228,23 @@ fi
 
 PORT="$(jq -r .port /data/options.json)"
 VERBOSE="$(jq -r .verbose /data/options.json)"
+LOG_FORMAT="$(jq -r '.log_format // empty' /data/options.json 2>/dev/null || true)"
+LOG_COLOR="$(jq -r '.log_color // empty' /data/options.json 2>/dev/null || true)"
+LOG_FIELDS="$(jq -r '.log_fields // empty' /data/options.json 2>/dev/null || true)"
+
+if [ -z "${LOG_FORMAT}" ] || [ "${LOG_FORMAT}" = "null" ]; then
+  LOG_FORMAT="pretty"
+fi
+if [ -z "${LOG_COLOR}" ] || [ "${LOG_COLOR}" = "null" ]; then
+  LOG_COLOR="false"
+fi
+if [ -z "${LOG_FIELDS}" ] || [ "${LOG_FIELDS}" = "null" ]; then
+  LOG_FIELDS=""
+fi
+if [ "${LOG_FORMAT}" != "pretty" ] && [ "${LOG_FORMAT}" != "raw" ]; then
+  log "log_format=${LOG_FORMAT} is invalid; using pretty"
+  LOG_FORMAT="pretty"
+fi
 
 if [ -z "${PORT}" ] || [ "${PORT}" = "null" ]; then
   PORT="18789"
@@ -271,13 +288,83 @@ shutdown_child() {
   fi
 }
 
+format_log_stream() {
+  local format="$1"
+  local use_color="$2"
+  local fields="$3"
+
+  if [ "${format}" != "pretty" ]; then
+    cat
+    return
+  fi
+
+  if ! command -v jq >/dev/null 2>&1; then
+    cat
+    return
+  fi
+
+  local jq_color="false"
+  if [ "${use_color}" = "true" ]; then
+    jq_color="true"
+  fi
+
+  jq -Rr --argjson use_color "${jq_color}" --arg fields "${fields}" '
+    def trim: gsub("^\\s+|\\s+$"; "");
+    def parse_name($raw):
+      if ($raw|type) == "string" then (try ($raw|fromjson) catch null) else null end;
+    def render($v):
+      if ($v|type) == "string" then $v
+      elif ($v|type) == "number" or ($v|type) == "boolean" then ($v|tostring)
+      else ($v|tojson)
+      end;
+    def numeric_entries($obj):
+      ($obj | to_entries | map(select(.key|test("^\\d+$"))) | sort_by(.key|tonumber));
+    def string_parts($obj; $name):
+      (numeric_entries($obj) | map(.value) | map(select(type=="string")) | map(select(. != $name)));
+    def object_meta($obj):
+      (numeric_entries($obj) | map(.value) | map(select(type=="object")) | reduce .[] as $o ({}; . * $o));
+    def colorize($text; $level):
+      if $use_color then
+        (if $level == "ERROR" or $level == "FATAL" then "\u001b[31m"+$text+"\u001b[0m"
+         elif $level == "WARN" then "\u001b[33m"+$text+"\u001b[0m"
+         elif $level == "DEBUG" or $level == "TRACE" then "\u001b[90m"+$text+"\u001b[0m"
+         else "\u001b[36m"+$text+"\u001b[0m"
+         end)
+      else $text end;
+    def collect_fields($meta; $fields):
+      [ $fields[] | select($meta[.] != null) | "\(. )=\(render($meta[.]))" ];
+    def format_line($time; $level; $label; $message; $fields):
+      ([ $time, (colorize($level; $level)), $label ] | map(select(. != null and . != "")) | join(" "))
+      + (if $message != "" then " - " + $message else "" end)
+      + (if ($fields|length) > 0 then " | " + ($fields|join(" ")) else "" end);
+    . as $line
+    | (fromjson? // null) as $obj
+    | if $obj == null then $line
+      else
+        ($obj._meta // {}) as $meta
+        | ($meta.name // null) as $name
+        | (parse_name($name) // {}) as $name_meta
+        | (object_meta($obj) + $name_meta) as $merged
+        | ($fields | split(",") | map(trim) | map(select(length>0))) as $field_list
+        | (string_parts($obj; $name) | join(" ")) as $message
+        | if ($message|length) == 0 then $line
+          else
+            ($obj.time // $meta.date // "") as $time
+            | ($meta.logLevelName // "INFO" | tostring | ascii_upcase) as $level
+            | ($name_meta.subsystem // $name_meta.module // "") as $label
+            | format_line($time; $level; $label; $message; collect_fields($merged; $field_list))
+          end
+      end
+  '
+}
+
 start_log_tail() {
   local file="$1"
   (
     while [ ! -f "${file}" ]; do
       sleep 1
     done
-    tail -n +1 -F "${file}"
+    tail -n +1 -F "${file}" | format_log_stream "${LOG_FORMAT}" "${LOG_COLOR}" "${LOG_FIELDS}"
   ) &
   tail_pid=$!
 }

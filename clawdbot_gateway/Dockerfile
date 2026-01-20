@@ -56,11 +56,13 @@ RUN export OP_VER=$(curl -s https://app-updates.agilebits.com/check/1/0/CLI2/en/
     && case "${TARGETARCH}" in \
          "amd64") OP_ARCH="amd64" ;; \
          "arm64") OP_ARCH="arm64" ;; \
-         *) echo "Unsupported architecture for 1Password CLI: ${TARGETARCH}"; exit 1 ;; \
+         *) echo "Skipping 1password: Unsupported architecture ${TARGETARCH}"; OP_ARCH="" ;; \
        esac \
-    && curl -sSo op.zip "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VER}/op_linux_${OP_ARCH}_v${OP_VER}.zip" \
-    && unzip -od /usr/local/bin/ op.zip op \
-    && rm op.zip
+    && if [ -n "$OP_ARCH" ]; then \
+         curl -sSo op.zip "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VER}/op_linux_${OP_ARCH}_v${OP_VER}.zip" \
+         && unzip -od /usr/local/bin/ op.zip op \
+         && rm op.zip; \
+       fi
 
 # [🟥] 🐦 bird - X/Twitter CLI for reading, searching, and posting via cookies or Sweetistics.
 RUN pnpm add -g @steipete/bird
@@ -96,9 +98,11 @@ RUN go install github.com/steipete/goplaces/cmd/goplaces@${GOPLACES_VERSION} && 
 RUN case "${TARGETARCH}" in \
          "amd64") HIMALAYA_ARCH="x86_64" ;; \
          "arm64") HIMALAYA_ARCH="aarch64" ;; \
-         *) echo "Unsupported architecture for himalaya: ${TARGETARCH}"; exit 1 ;; \
+         *) echo "Skipping himalaya: Unsupported architecture ${TARGETARCH}"; HIMALAYA_ARCH="" ;; \
        esac \
-    && curl -fsSL "https://github.com/pimalaya/himalaya/releases/latest/download/himalaya.${HIMALAYA_ARCH}-linux.tgz" | tar xz -C /usr/local/bin himalaya
+    && if [ -n "$HIMALAYA_ARCH" ]; then \
+         curl -fsSL "https://github.com/pimalaya/himalaya/releases/latest/download/himalaya.${HIMALAYA_ARCH}-linux.tgz" | tar xz -C /usr/local/bin himalaya; \
+       fi
 
 # [🟥] 📦 mcporter - Use the mcporter CLI to list, configure, auth, and call MCP servers/tools directly (HTTP or stdio), including ad-hoc servers, config edits,…
 RUN pnpm add -g mcporter
@@ -116,9 +120,11 @@ RUN pip3 install --no-cache-dir --break-system-packages whisper-cli
 RUN case "${TARGETARCH}" in \
          "amd64") OPENHUE_ARCH="x86_64" ;; \
          "arm64") OPENHUE_ARCH="arm64" ;; \
-         *) echo "Unsupported architecture for openhue: ${TARGETARCH}"; exit 1 ;; \
+         *) echo "Skipping openhue: Unsupported architecture ${TARGETARCH}"; OPENHUE_ARCH="" ;; \
        esac \
-    && curl -fsSL "https://github.com/openhue/openhue-cli/releases/latest/download/openhue_Linux_${OPENHUE_ARCH}.tar.gz" | tar xz -C /usr/local/bin openhue
+    && if [ -n "$OPENHUE_ARCH" ]; then \
+         curl -fsSL "https://github.com/openhue/openhue-cli/releases/latest/download/openhue_Linux_${OPENHUE_ARCH}.tar.gz" | tar xz -C /usr/local/bin openhue; \
+       fi
 
 # [🟥] 🧿 oracle - Best practices for using the oracle CLI (prompt + file bundling, engines, sessions, and file attachment patterns).
 RUN npm install -g @steipete/oracle

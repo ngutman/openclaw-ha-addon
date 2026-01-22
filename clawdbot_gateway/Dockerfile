@@ -33,12 +33,16 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ffmpeg \
     jq \
+    less \
     libasound2-dev \
+    lsof \
     nano \
     openssh-server \
     python3-pip \
     ripgrep \
     tmux \
+    vim \
+    zip \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 

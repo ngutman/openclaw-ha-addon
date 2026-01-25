@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.15
+- Fix: install dev dependencies so gateway builds include tsc. (#9)
+
 ## 0.2.14
 - Add pretty log formatting options for the add-on Log tab.
 

@@ -189,21 +189,70 @@ fi
 
 cd "${REPO_DIR}"
 
-log "installing dependencies"
-pnpm config set confirmModulesPurge false >/dev/null 2>&1 || true
-pnpm config set global-bin-dir "${PNPM_HOME}" >/dev/null 2>&1 || true
-pnpm config set global-dir "${BASE_DIR}/.local/share/pnpm/global" >/dev/null 2>&1 || true
-pnpm install --no-frozen-lockfile --prefer-frozen-lockfile --prod=false
+REVISION="$(git -C "${REPO_DIR}" rev-parse HEAD 2>/dev/null || true)"
+if [ -z "${REVISION}" ]; then
+  log "failed to determine repo revision"
+  exit 1
+fi
+
+INSTALL_STAMP="${STATE_DIR}/install_rev"
+BUILD_STAMP="${STATE_DIR}/build_rev"
+UI_BUILD_STAMP="${STATE_DIR}/ui_build_rev"
+
+needs_install=1
+if [ -d "${REPO_DIR}/node_modules" ] && [ -f "${INSTALL_STAMP}" ]; then
+  if [ "$(cat "${INSTALL_STAMP}")" = "${REVISION}" ]; then
+    needs_install=0
+  fi
+fi
+
+if [ "${needs_install}" -eq 1 ]; then
+  log "installing dependencies"
+  pnpm config set confirmModulesPurge false >/dev/null 2>&1 || true
+  pnpm config set global-bin-dir "${PNPM_HOME}" >/dev/null 2>&1 || true
+  pnpm config set global-dir "${BASE_DIR}/.local/share/pnpm/global" >/dev/null 2>&1 || true
+  pnpm install --no-frozen-lockfile --prefer-frozen-lockfile --prod=false
+  printf "%s" "${REVISION}" > "${INSTALL_STAMP}"
+else
+  log "dependencies up to date"
+fi
+
 ensure_openclaw_wrapper
 require_openclaw_cli
-log "building gateway"
-pnpm build
-if [ ! -d "${REPO_DIR}/ui/node_modules" ]; then
-  log "installing UI dependencies"
-  pnpm ui:install
+
+needs_build=1
+if [ -f "${REPO_DIR}/dist/entry.js" ] && [ -f "${BUILD_STAMP}" ]; then
+  if [ "$(cat "${BUILD_STAMP}")" = "${REVISION}" ]; then
+    needs_build=0
+  fi
 fi
-log "building control UI"
-pnpm ui:build
+
+if [ "${needs_build}" -eq 1 ]; then
+  log "building gateway"
+  pnpm build
+  printf "%s" "${REVISION}" > "${BUILD_STAMP}"
+else
+  log "gateway build up to date"
+fi
+
+needs_ui_build=1
+if [ -f "${REPO_DIR}/dist/control-ui/index.html" ] && [ -f "${UI_BUILD_STAMP}" ]; then
+  if [ "$(cat "${UI_BUILD_STAMP}")" = "${REVISION}" ]; then
+    needs_ui_build=0
+  fi
+fi
+
+if [ "${needs_ui_build}" -eq 1 ]; then
+  if [ ! -d "${REPO_DIR}/ui/node_modules" ]; then
+    log "installing UI dependencies"
+    pnpm ui:install
+  fi
+  log "building control UI"
+  pnpm ui:build
+  printf "%s" "${REVISION}" > "${UI_BUILD_STAMP}"
+else
+  log "control UI build up to date"
+fi
 
 if [ ! -f "${OPENCLAW_CONFIG_PATH}" ]; then
   openclaw setup --workspace "${WORKSPACE_DIR}"

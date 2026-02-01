@@ -48,6 +48,7 @@ fi
 export HOME="${BASE_DIR}"
 export PNPM_HOME="${PNPM_HOME}"
 export PATH="${BASE_DIR}/bin:${PNPM_HOME}:${PATH}"
+export CI=true
 export OPENCLAW_STATE_DIR="${STATE_DIR}"
 export OPENCLAW_CONFIG_PATH="${CONFIG_PATH}"
 
@@ -140,16 +141,22 @@ if [ -n "${BRANCH}" ]; then
   log "branch=${BRANCH}"
 fi
 
-require_openclaw_cli() {
-  local out
-  if out="$(openclaw --version 2>&1)"; then
-    return 0
+require_openclaw_repo() {
+  local name
+  if [ ! -f "${REPO_DIR}/package.json" ]; then
+    log "missing package.json in repo; update repo_url/branch to OpenClaw"
+    exit 1
   fi
-  log "openclaw CLI failed to start; ensure repo_url/branch points at a recent OpenClaw revision"
-  while IFS= read -r line; do
-    log "${line}"
-  done <<< "${out}"
-  exit 1
+  name="$(node -e "const fs=require('fs');const p='${REPO_DIR}/package.json';const data=JSON.parse(fs.readFileSync(p,'utf8'));process.stdout.write(data.name||'');")"
+  if [ "${name}" != "openclaw" ]; then
+    log "unsupported repo (${name}); only OpenClaw is supported"
+    log "update repo_url/branch to https://github.com/openclaw/openclaw.git and restart the add-on"
+    exit 1
+  fi
+  if [ ! -f "${REPO_DIR}/openclaw.mjs" ]; then
+    log "openclaw.mjs missing; update repo_url/branch to a recent OpenClaw revision"
+    exit 1
+  fi
 }
 
 ensure_openclaw_wrapper() {
@@ -157,7 +164,7 @@ ensure_openclaw_wrapper() {
 #!/usr/bin/env bash
 set -euo pipefail
 REPO_DIR="/config/openclaw/openclaw-src"
-exec pnpm -C "${REPO_DIR}" exec openclaw "$@"
+exec node "${REPO_DIR}/openclaw.mjs" "$@"
 EOF_WRAPPER
   chmod +x "${BASE_DIR}/bin/openclaw"
 }
@@ -189,13 +196,13 @@ fi
 
 cd "${REPO_DIR}"
 
+require_openclaw_repo
 log "installing dependencies"
 pnpm config set confirmModulesPurge false >/dev/null 2>&1 || true
 pnpm config set global-bin-dir "${PNPM_HOME}" >/dev/null 2>&1 || true
 pnpm config set global-dir "${BASE_DIR}/.local/share/pnpm/global" >/dev/null 2>&1 || true
 pnpm install --no-frozen-lockfile --prefer-frozen-lockfile --prod=false
 ensure_openclaw_wrapper
-require_openclaw_cli
 log "building gateway"
 pnpm build
 if [ ! -d "${REPO_DIR}/ui/node_modules" ]; then
@@ -227,6 +234,10 @@ read_log_file() {
   node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.OPENCLAW_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(file){console.log(file);}"; 2>/dev/null
 }
 
+ensure_gateway_auth() {
+  node -e "const fs=require('fs');const crypto=require('crypto');const JSON5=require('json5');const p=process.env.OPENCLAW_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const gateway=data.gateway||{};const auth=gateway.auth||{};let updated=false;const mode=String(auth.mode||'').trim();if(!mode){auth.mode='token';updated=true;}const token=String(auth.token||'').trim();if(!token){auth.token=crypto.randomBytes(24).toString('hex');updated=true;}if(updated){gateway.auth=auth;data.gateway=gateway;fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');console.log('updated');}else{console.log('unchanged');}" 2>/dev/null
+}
+
 if [ -f "${OPENCLAW_CONFIG_PATH}" ]; then
   mode_status="$(ensure_gateway_mode || true)"
   if [ "${mode_status}" = "updated" ]; then
@@ -250,6 +261,15 @@ if [ -f "${OPENCLAW_CONFIG_PATH}" ]; then
     fi
   else
     log "failed to normalize logging.file (invalid config?)"
+  fi
+
+  auth_status="$(ensure_gateway_auth || true)"
+  if [ "${auth_status}" = "updated" ]; then
+    log "gateway.auth.token set (missing)"
+  elif [ "${auth_status}" = "unchanged" ]; then
+    log "gateway.auth.token already set"
+  else
+    log "failed to normalize gateway.auth (invalid config?)"
   fi
 fi
 mkdir -p "$(dirname "${LOG_FILE}")"

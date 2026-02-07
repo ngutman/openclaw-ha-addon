@@ -8,7 +8,7 @@ Run [OpenClaw](https://github.com/openclaw/openclaw) on Home Assistant OS with s
 - 🔒 **SSH Tunnel** — Secure remote access for the OpenClaw app or CLI
 - 📦 **Persistent Storage** — All data survives add-on updates
 - 🛠️ **Included Tools** — 28 CLI tools including:
-  - **Core**: hass-cli (Home Assistant), clawdhub
+  - **Core**: hass-cli (Home Assistant)
   - **Productivity**: gog (Google Workspace), gh (GitHub), op (1Password), himalaya (Email), obsidian-cli
   - **AI & Media**: gemini, oracle, nano-pdf, whisper (speech-to-text), summarize, sag (text-to-speech), songsee, video-frames
   - **Smart Home**: openhue (Philips Hue), sonos, eightctl (Eight Sleep)

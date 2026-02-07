@@ -50,8 +50,7 @@ ENV PATH="${BUN_INSTALL}/bin:${PNPM_HOME}:${PATH}"
 
 RUN npm install -g bun pnpm \
   && mkdir -p /pnpm \
-  && pnpm config set global-bin-dir /pnpm \
-  && pnpm add -g clawdhub
+  && pnpm config set global-bin-dir /pnpm
 
 RUN pip3 install --no-cache-dir --break-system-packages homeassistant-cli uv
 

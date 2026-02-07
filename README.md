@@ -16,7 +16,7 @@ OpenClaw Gateway for HA OS with SSH tunnel support for remote connections.
 1. Go to **Settings → Add-ons → Add-on Store → ⋮ → Repositories**
 2. Add this repository:
    ```
-   https://github.com/WolframRavenwolf/clawdbot-ha-addon
+   https://github.com/ngutman/clawdbot-ha-addon
    ```
 3. Find "OpenClaw Gateway" in the add-on store and install
 

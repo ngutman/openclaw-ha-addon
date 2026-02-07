@@ -9,12 +9,6 @@ Run [OpenClaw](https://github.com/openclaw/openclaw) on Home Assistant OS with s
 - 📦 **Persistent Storage** — All data survives add-on updates
 - 🛠️ **Included Tools** — gog (Google Workspace), gh (GitHub), hass-cli
 
-## Install (Repository Add-on)
-1) In Home Assistant UI:
-   - Settings → Add-ons → Add-on Store → menu (⋮) → Repositories.
-   - Add: `https://github.com/WolframRavenwolf/openclaw-ha-addon`
-2) Reload the Add-on Store and install "OpenClaw Gateway".
-
 ## Quick Start
 
 1. Add this repository to Home Assistant
@@ -26,7 +20,6 @@ After connecting, run `openclaw configure` to finish setup (including gateway mo
 
 ## Links
 
-- [Documentation](https://docs.openclaw.ai)
-- [OpenClaw GitHub](https://github.com/openclaw/openclaw)
-- [Add-on Fork](https://github.com/WolframRavenwolf/openclaw-ha-addon)
+- [Documentation](https://docs.clawd.bot)
+- [GitHub](https://github.com/openclaw/openclaw)
 - [Discord](https://discord.com/invite/clawd)

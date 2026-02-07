@@ -7,7 +7,14 @@ Run [OpenClaw](https://github.com/openclaw/openclaw) on Home Assistant OS with s
 - 🦞 **OpenClaw Gateway** — AI agent with messaging, automation, and more
 - 🔒 **SSH Tunnel** — Secure remote access for the OpenClaw app or CLI
 - 📦 **Persistent Storage** — All data survives add-on updates
-- 🛠️ **Included Tools** — gog (Google Workspace), gh (GitHub), hass-cli
+- 🛠️ **Included Tools** — 28 CLI tools including:
+  - **Core**: hass-cli (Home Assistant), clawdhub
+  - **Productivity**: gog (Google Workspace), gh (GitHub), op (1Password), himalaya (Email), obsidian-cli
+  - **AI & Media**: gemini, oracle, nano-pdf, whisper (speech-to-text), summarize, sag (text-to-speech), songsee, video-frames
+  - **Smart Home**: openhue (Philips Hue), sonos, eightctl (Eight Sleep)
+  - **Communication**: bird (X/Twitter), wacli (WhatsApp)
+  - **Development**: mcporter (MCP servers), tmux
+  - **Utilities**: blogwatcher (RSS/Atom), goplaces (Google Places), camsnap (RTSP/ONVIF), blu (BluOS), gifgrep, ordercli (Foodora)
 
 ## Quick Start
 

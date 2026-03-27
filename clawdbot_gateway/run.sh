@@ -330,4 +330,7 @@ if [ "${VERBOSE}" = "true" ]; then
   ARGS+=(--verbose)
 fi
 
+# Disable respawn: container binary cannot self-update, respawn just kills PID 1
+export OPENCLAW_NO_RESPAWN=1
+
 exec openclaw "${ARGS[@]}"

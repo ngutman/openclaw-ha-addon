@@ -1,11 +1,12 @@
 # OpenClaw Gateway Documentation
 
-This add-on runs the OpenClaw Gateway on Home Assistant OS, providing secure remote access via SSH tunnel.
+This add-on runs the OpenClaw Gateway on Home Assistant OS, providing Home Assistant ingress onboarding and optional SSH tunnel access.
 
 ## Overview
 
 - **Gateway** runs locally on the HA host (binds to loopback by default)
-- **SSH server** provides secure remote access for OpenClaw.app or the CLI
+- **Ingress onboarding** lets you complete first-run setup from the add-on panel
+- **SSH server** provides optional secure remote access for OpenClaw.app or the CLI
 - **Persistent storage** under `/config/openclaw` survives add-on updates
 - On first start, runs `openclaw setup` to create a minimal config
 
@@ -38,11 +39,19 @@ The add-on performs these steps on startup:
 
 1. Clones or updates the OpenClaw repo into `/config/openclaw/openclaw-src`
 2. Installs dependencies and builds the gateway
-3. Runs `openclaw setup` if no config exists
-4. Ensures `gateway.mode=local` if missing
-5. Starts the gateway
+3. Starts the Home Assistant ingress proxy immediately
+4. If no config exists, serves the onboarding UI through the add-on panel
+5. Ensures `gateway.mode=local` if missing
+6. Starts the gateway
 
 ### OpenClaw Configuration
+
+#### Recommended: Home Assistant ingress onboarding
+
+On first boot, open the add-on page in Home Assistant and complete onboarding there.
+The add-on now exposes the onboarding UI through ingress, so SSH is no longer required for initial setup.
+
+#### Optional: SSH access
 
 SSH into the add-on and run the configurator:
 
@@ -104,6 +113,11 @@ Use `pnpm exec openclaw configure` or `pnpm exec openclaw onboard` to set it in 
 
 Ensure `ssh_authorized_keys` is set in the add-on options with your public key.
 
+### Ingress onboarding doesn't load
+
+Open the add-on from Home Assistant, not by browsing directly to port `8099`.
+The ingress listener is intended for Home Assistant's internal proxy only.
+
 ### Gateway won't start
 
 Check logs:
@@ -119,7 +133,7 @@ The first boot runs a full build and may take several minutes. Subsequent starts
 ## Security Notes
 
 - For `bind=lan/tailnet/auto`, enable gateway auth in `openclaw.json`
-- The add-on uses host networking for SSH access
+- SSH access is exposed only through the configured add-on port mapping
 - Consider firewall rules for the SSH port if exposed to LAN
 
 ## Links

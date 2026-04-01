@@ -1,8 +1,8 @@
 {
   "name": "OpenClaw Gateway",
-  "version": "0.4.13",
+  "version": "0.4.14",
   "slug": "openclaw_gateway",
-  "description": "OpenClaw Gateway (SSH-tunneled, HA add-on)",
+  "description": "OpenClaw Gateway with Home Assistant ingress onboarding",
   "url": "https://github.com/shmulik323/openclaw-ha-addon",
   "documentation": "https://github.com/shmulik323/openclaw-ha-addon",
   "arch": ["aarch64", "armv7", "amd64"],
@@ -10,8 +10,7 @@
   "boot": "auto",
   "host_network": false,
   "ports": {
-    "2222/tcp": 2222,
-    "8099/tcp": 8099
+    "2222/tcp": 2222
   },
   "ingress": true,
   "ingress_port": 8099,

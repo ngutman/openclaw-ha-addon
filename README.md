@@ -6,7 +6,7 @@ This repository contains Home Assistant add-ons for OpenClaw.
 
 ### openclaw_gateway
 
-OpenClaw Gateway for HA OS with SSH tunnel support for Mac node connections.
+OpenClaw Gateway for HA OS with Home Assistant ingress onboarding and optional SSH tunnel support.
 
 **Included tools:**
 
@@ -33,6 +33,8 @@ OpenClaw Gateway for HA OS with SSH tunnel support for Mac node connections.
 | `github_token`        | GitHub token for private repos                                |
 | `ssh_port`            | SSH server port for tunnel access (default: 2222)             |
 | `ssh_authorized_keys` | Public keys for SSH access                                    |
+
+First-run onboarding is now available directly from the add-on panel in Home Assistant.
 
 ## Links
 

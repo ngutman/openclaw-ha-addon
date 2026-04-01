@@ -5,7 +5,7 @@ log() {
   printf "[addon] %s\n" "$*"
 }
 
-log "run.sh version=2026-01-30-antigravity-fix"
+log "run.sh version=2026-04-02-ingress-onboarding"
 
 BASE_DIR=/config/openclaw
 STATE_DIR="${BASE_DIR}/.openclaw"
@@ -196,18 +196,30 @@ fi
 log "building control UI"
 pnpm ui:build
 
-# Read PORT early since we need it for onboarding if config is missing
-ONBOARD_PORT="$(jq -r .port /data/options.json 2>/dev/null || echo 18789)"
-if [ -z "${ONBOARD_PORT}" ] || [ "${ONBOARD_PORT}" = "null" ]; then
-  ONBOARD_PORT="18789"
+PORT="$(jq -r .port /data/options.json 2>/dev/null || echo 18789)"
+if [ -z "${PORT}" ] || [ "${PORT}" = "null" ]; then
+  PORT="18789"
 fi
 
+render_ingress_proxy() {
+  sed "s/__UPSTREAM_PORT__/${PORT}/g" /nginx.conf.tpl > /etc/nginx/sites-enabled/openclaw.conf
+}
+
+start_ingress_proxy() {
+  log "starting nginx reverse proxy for Ingress on 8099 -> 127.0.0.1:${PORT}"
+  render_ingress_proxy
+  rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+  nginx
+}
+
+start_ingress_proxy
+
 if [ ! -f "${OPENCLAW_CONFIG_PATH}" ]; then
-  log "openclaw.json missing; starting onboarding UI on port ${ONBOARD_PORT}"
+  log "openclaw.json missing; starting onboarding UI on port ${PORT}"
   # Copy onboarding files to repo so native modules (node-pty) can be loaded
   cp /onboarding.mjs "${REPO_DIR}/onboarding.mjs"
   cp /onboarding.html "${REPO_DIR}/onboarding.html"
-  node "${REPO_DIR}/onboarding.mjs" "${ONBOARD_PORT}"
+  node "${REPO_DIR}/onboarding.mjs" "${PORT}"
 else
   log "config exists; skipping openclaw setup"
 fi
@@ -226,6 +238,38 @@ ensure_log_file() {
 
 read_log_file() {
   node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.OPENCLAW_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(file){console.log(file);}"; 2>/dev/null
+}
+
+ensure_gateway_auth() {
+  node -e "
+    const crypto=require('crypto');
+    const fs=require('fs');
+    const JSON5=require('json5');
+    const p=process.env.OPENCLAW_CONFIG_PATH;
+    const raw=fs.readFileSync(p,'utf8');
+    const data=JSON5.parse(raw);
+    const gateway=data.gateway||{};
+    const auth=gateway.auth||{};
+    let updated=false;
+    const mode=String(auth.mode||'').trim();
+    if(!mode){
+      auth.mode='token';
+      updated=true;
+    }
+    const token=String(auth.token||'').trim();
+    if(!token){
+      auth.token=crypto.randomBytes(24).toString('hex');
+      updated=true;
+    }
+    if(updated){
+      gateway.auth=auth;
+      data.gateway=gateway;
+      fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');
+      console.log('updated');
+    }else{
+      console.log('unchanged');
+    }
+  " 2>/dev/null
 }
 
 ensure_insecure_auth() {
@@ -295,6 +339,17 @@ if [ -f "${OPENCLAW_CONFIG_PATH}" ]; then
   fi
 fi
 
+if [ -f "${OPENCLAW_CONFIG_PATH}" ]; then
+  auth_status="$(ensure_gateway_auth || true)"
+  if [ "${auth_status}" = "updated" ]; then
+    log "gateway.auth.token set (missing)"
+  elif [ "${auth_status}" = "unchanged" ]; then
+    log "gateway.auth.token already set"
+  else
+    log "failed to normalize gateway.auth (invalid config?)"
+  fi
+fi
+
 # Enable insecure auth for HA Ingress HTTP access
 if [ -f "${OPENCLAW_CONFIG_PATH}" ]; then
   auth_status="$(ensure_insecure_auth || true)"
@@ -315,7 +370,6 @@ if [ -f "${OPENCLAW_CONFIG_PATH}" ]; then
   fi
 fi
 
-PORT="$(jq -r .port /data/options.json)"
 VERBOSE="$(jq -r .verbose /data/options.json)"
 LOG_FORMAT="$(jq -r '.log_format // empty' /data/options.json 2>/dev/null || true)"
 LOG_COLOR="$(jq -r '.log_color // empty' /data/options.json 2>/dev/null || true)"
@@ -335,10 +389,6 @@ if [ "${LOG_FORMAT}" != "pretty" ] && [ "${LOG_FORMAT}" != "raw" ]; then
   LOG_FORMAT="pretty"
 fi
 
-if [ -z "${PORT}" ] || [ "${PORT}" = "null" ]; then
-  PORT="18789"
-fi
-
 ALLOW_UNCONFIGURED=()
 if [ ! -f "${OPENCLAW_CONFIG_PATH}" ]; then
   log "config missing; allowing unconfigured gateway start"
@@ -355,6 +405,8 @@ ARGS=(gateway "${ALLOW_UNCONFIGURED[@]}" --port "${PORT}")
 if [ "${VERBOSE}" = "true" ]; then
   ARGS+=(--verbose)
 fi
+
+export OPENCLAW_NO_RESPAWN=1
 
 child_pid=""
 tail_pid=""
@@ -460,11 +512,6 @@ start_log_tail() {
 
 trap forward_usr1 USR1
 trap shutdown_child TERM INT
-
-# Start nginx as reverse proxy for HA Ingress (binds 0.0.0.0:8099 -> 127.0.0.1:18789)
-log "starting nginx reverse proxy for Ingress"
-rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
-nginx
 
 while true; do
   node scripts/run-node.mjs "${ARGS[@]}" &

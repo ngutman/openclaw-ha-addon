@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.14
+
+- **Fix**: Make first-run onboarding available through Home Assistant ingress.
+  - Start the ingress proxy before the onboarding server so the add-on panel works on first boot.
+  - Render nginx against the configured gateway port instead of hard-coding `18789`.
+- **Fix**: Restrict the ingress listener to Home Assistant's internal proxy path.
+  - Stop publishing the ingress port as a host port.
+  - Deny direct non-ingress access at nginx level.
+- **Fix**: Ensure `gateway.auth.token` exists before the gateway starts.
+- **Docs**: Update quick-start and docs to point users at ingress onboarding first.
+
 ## 0.4.13
 
 - **Feature**: Add Home Assistant API integration.
